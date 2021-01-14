@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% block title %}Записи сообщества {{posts.0.group}} {% endblock %}
+{% block header %}Записи сообщества {{posts.0.group}}{% endblock %}
+
+
+
+{% block content %}
+    <p>
+        Цитаты Льва Толстого
+    </p>
+    {% for post in post %}
+        {% include "includes/post_item.html" with post=post %}
+    {% endfor %}
+
+{% endblock %}
