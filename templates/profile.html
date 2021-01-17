@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load thumbnail %}
 {% block title %}Страница поста{% endblock %}
-{% block header %}Профайл пользователя @{{ user.username }}{% endblock %}
+{% block header %}Профайл пользователя @{{ author.username }}{% endblock %}
 {% block content %}
 <main role="main" class="container">
     <div class="row">
@@ -10,11 +10,11 @@
                 <div class="card-body">
                     <div class="h2">
                         <!-- Имя автора -->
-                        {{ user.get_full_name }}
+                        {{ author.get_full_name }}
                     </div>
                     <div class="h3 text-muted">
                         <!-- username автора -->
-                        @{{ user.username }}
+                        @{{ author.username }}
                     </div>
                 </div>
                 <ul class="list-group list-group-flush">
@@ -27,7 +27,7 @@
                     <li class="list-group-item">
                         <div class="h6 text-muted">
                             <!-- Количество записей -->
-                            Записей: {{ user.posts.count }}
+                            Записей: {{ author.posts.count }}
                         </div>
                     </li>
                 </ul>

@@ -40,7 +40,7 @@ class Post(models.Model):
 
 class Group(models.Model):
     """Модель для Группы"""
-    title = models.CharField(verbose_name="Заголовок сообщества", max_length=255)
+    title = models.CharField(verbose_name="Заголовок сообщества", max_length=200)
     slug = models.SlugField(verbose_name="Адрес сообщества в интернете", unique=True)
     description = models.TextField(verbose_name="Описание сообщества")
 
@@ -61,7 +61,20 @@ class Comment(models.Model):
         related_name="comments"
     )
     text = models.TextField()
-    created = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-created']
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, blank=True,
+        null=True,
+        related_name='follower'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following'
+    )

@@ -9,8 +9,8 @@
     <p>
         Цитаты Льва Толстого
     </p>
-    {% for post in post %}
+    {% for post in page %}
         {% include "includes/post_item.html" with post=post %}
     {% endfor %}
-
+{% include "includes/paginator.html" %
 {% endblock %}
