@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from .models import Post
 from .models import Group
 from .models import User
+from .models import Follow
 
 from .forms import PostForm
 from .forms import CommentForm
@@ -49,7 +50,7 @@ def new_post(request):
         }
         return render(request, "add_or_change_post.html", context)
 
-    form = PostForm(request.POST)
+    form = PostForm(request.POST or None, files=request.FILES or None)
     if form.is_valid():
         post = form.save(commit=False)
         post.author = request.user
@@ -59,15 +60,19 @@ def new_post(request):
 
 def profile(request, username):
     """Профайл пользователя User and Post"""
+    following = False
     user = get_object_or_404(User, username=username)
     posts = user.posts.all()
     paginator = Paginator(posts, 10)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
+    if Follow.objects.filter(user=request.user, author=user).exists():
+        following = True
     context = {
         "author": user,
         "page": page,
-        "paginator": paginator
+        "paginator": paginator,
+        "following": following
     }
     return render(request, "profile.html", context)
 
@@ -110,6 +115,7 @@ def post_edit(request, username, post_id):
         form.save()
         return redirect("post", username=request.user.username, post_id=post_id)
 
+
 @login_required()
 def add_comment(request, username, post_id):
     post = Post.objects.get(pk=post_id)
@@ -122,6 +128,44 @@ def add_comment(request, username, post_id):
     form.save()
     return redirect(reverse('post', kwargs={'username': username,
                                             'post_id': post_id}))
+
+
+def follow_index(request):
+    """Страница с избранными авторами follow.html"""
+
+    user_follower = User.objects.get(id=request.user.id)
+    post_lists = Post.objects.filter(author__following__user=user_follower)
+    paginator = Paginator(post_lists, 5)
+    page_number = request.GET.get("page")
+    page = paginator.get_page(page_number)
+
+    context = {
+        "page": page,
+        "paginator": paginator,
+
+    }
+    return render(request, "follow.html", context)
+
+
+
+@login_required
+def profile_follow(request, username):
+    author = get_object_or_404(User, username=username)
+    if request.user != author and not Follow.objects.filter(
+            user=request.user, author=author).exists():
+        Follow.objects.create(user=request.user, author=author)
+    return redirect('profile', username=username)
+
+
+@login_required
+def profile_unfollow(request, username):
+    author = get_object_or_404(User, username=username)
+    follower = Follow.objects.filter(user=request.user, author=author)
+    if follower.exists():
+        follower.delete()
+    return redirect('profile', username=username)
+
+
 # def add_comment(request, username, post_id):
 #     """Форма комментариев"""
 #     post = get_object_or_404(Post, id=post_id)

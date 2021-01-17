@@ -45,14 +45,14 @@ class StaticURLTests(TestCase):
     def test_all_pages_urls(self):
         """Проверка страниц на статус 200"""
         for page, templates in self.list_pages.items():
-            response = self.guest_client.get(page)
+            response = self.authorized_user.get(page)
             self.assertEqual(response.status_code, 200,
                              f"Страница {page} не работает")
 
     def test_all_templates(self):
         """Проверка шаблонов"""
         for page, templates in self.list_pages.items():
-            response = self.guest_client.get(page)
+            response = self.authorized_user.get(page)
             self.assertTemplateUsed(response, templates,
                                     f"Шаблон {templates} не работае")
 
