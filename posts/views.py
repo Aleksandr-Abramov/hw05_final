@@ -32,7 +32,6 @@ def group_posts(request, slug):
     paginator = Paginator(posts, 5)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
-
     context = {
         "page": page,
         "paginator": paginator
@@ -87,7 +86,7 @@ def post_view(request, username, post_id):
     comments = post.comments.all()
     form = CommentForm()
     context = {
-        "author_posts": author_posts,
+        "author": author_posts,
         "post": post,
         "form": form,
         "comments": comments
@@ -121,42 +120,37 @@ def post_edit(request, username, post_id):
 
 @login_required()
 def add_comment(request, username, post_id):
+    """Добовление комментарив"""
     post = Post.objects.get(pk=post_id)
     form = CommentForm(request.POST or None)
-    # if request.GET or not form.is_valid():
-    #     return render(request, 'post.html', {'post': post_id})
-    #
-    # else:
-    #     comment = form.save(commit=False)
-    #     comment.author = request.user
-    #     comment.post = post
-    #     form.save()
-    #     return redirect(reverse('post', kwargs={'username': username,
-    #                                             'post_id': post_id}))
-    return render(request, "includes/comments.html")
+    if request.GET or not form.is_valid():
+        return render(request, 'post.html', {'post': post_id})
+
+    comment = form.save(commit=False)
+    comment.author = request.user
+    comment.post = post
+    form.save()
+    return redirect(reverse('post', kwargs={'username': username,
+                                            'post_id': post_id}))
 
 
-
-
+@login_required
 def follow_index(request):
     """Страница с избранными авторами follow.html"""
-
-    user_follower = User.objects.get(id=request.user.id)
-    post_lists = Post.objects.filter(author__following__user=user_follower)
-    paginator = Paginator(post_lists, 5)
+    post_list = Post.objects.filter(author__following__user=request.user)
+    paginator = Paginator(post_list, 5)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
-
     context = {
         "page": page,
         "paginator": paginator,
-
     }
     return render(request, "follow.html", context)
 
 
 @login_required
 def profile_follow(request, username):
+    """Функция подписки на автора"""
     author = get_object_or_404(User, username=username)
     if request.user != author and not Follow.objects.filter(
             user=request.user, author=author).exists():
@@ -166,33 +160,12 @@ def profile_follow(request, username):
 
 @login_required
 def profile_unfollow(request, username):
+    """Функция отписки от автора"""
     author = get_object_or_404(User, username=username)
     follower = Follow.objects.filter(user=request.user, author=author)
     if follower.exists():
         follower.delete()
     return redirect('profile', username=username)
-
-
-# def add_comment(request, username, post_id):
-#     """Форма комментариев"""
-#     post = get_object_or_404(Post, id=post_id)
-#     author = get_object_or_404(User, username=request.user)
-#
-#     if request.method != "POST":
-#         form = CommentForm()
-#         context = {
-#             "form": form
-#         }
-#         return render(request, "includes/comments.html", context)
-#
-#     form = CommentForm(request.POST)
-#
-#     if form.is_valid():
-#         comment = form.save(commit=False)
-#         comment.post = post
-#         comment.author = author
-#         comment.save()
-#         return redirect("post", username=username, post_id=post_id)
 
 
 def page_not_found(request, exception):
