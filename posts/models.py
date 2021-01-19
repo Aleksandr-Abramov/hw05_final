@@ -10,7 +10,11 @@ class Post(models.Model):
         verbose_name="Текст",
         help_text="Цитата, статья, текст."
     )
-    pub_date = models.DateTimeField("date published", auto_now_add=True)
+    pub_date = models.DateTimeField(
+        "date published",
+        auto_now_add=True,
+        db_index=True,
+    )
     author = models.ForeignKey(
         User,
         verbose_name="Автор поста",
