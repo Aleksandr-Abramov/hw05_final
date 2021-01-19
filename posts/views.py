@@ -56,23 +56,26 @@ def new_post(request):
         post.author = request.user
         post.save()
         return redirect("index")
+    return render(request, "add_or_change_post.html")
 
 
 def profile(request, username):
     """Профайл пользователя User and Post"""
     following = False
     user = get_object_or_404(User, username=username)
+    if request.user.is_authenticated:
+        if Follow.objects.filter(user=request.user, author=user).exists():
+            following = True
     posts = user.posts.all()
     paginator = Paginator(posts, 10)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
-    if Follow.objects.filter(user=request.user, author=user).exists():
-        following = True
     context = {
         "author": user,
         "page": page,
         "paginator": paginator,
-        "following": following
+        "following": following,
+
     }
     return render(request, "profile.html", context)
 
@@ -120,14 +123,19 @@ def post_edit(request, username, post_id):
 def add_comment(request, username, post_id):
     post = Post.objects.get(pk=post_id)
     form = CommentForm(request.POST or None)
-    if request.GET or not form.is_valid():
-        return render(request, 'posts/post.html', {'post': post_id})
-    comment = form.save(commit=False)
-    comment.author = request.user
-    comment.post = post
-    form.save()
-    return redirect(reverse('post', kwargs={'username': username,
-                                            'post_id': post_id}))
+    # if request.GET or not form.is_valid():
+    #     return render(request, 'post.html', {'post': post_id})
+    #
+    # else:
+    #     comment = form.save(commit=False)
+    #     comment.author = request.user
+    #     comment.post = post
+    #     form.save()
+    #     return redirect(reverse('post', kwargs={'username': username,
+    #                                             'post_id': post_id}))
+    return render(request, "includes/comments.html")
+
+
 
 
 def follow_index(request):
@@ -145,7 +153,6 @@ def follow_index(request):
 
     }
     return render(request, "follow.html", context)
-
 
 
 @login_required
