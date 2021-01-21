@@ -17,7 +17,6 @@ class PostFormTest(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         """Тестовые данные"""
-        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
         cls.form = PostForm()
         cls.user = get_user_model().objects.create_user(username="Alex")
         cls.group = Group.objects.create(
@@ -30,6 +29,8 @@ class PostFormTest(TestCase):
             text="тестовый текст поста",
             group=cls.group
         )
+
+        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
     def setUp(self) -> None:
         """Тестовые пользователи"""
@@ -60,7 +61,6 @@ class PostFormTest(TestCase):
             "group": self.group.id,
             "image": uploaded
         }
-
 
         tasks_count = Post.objects.count()
         response = self.authorized_guest.post(

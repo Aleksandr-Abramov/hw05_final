@@ -10,7 +10,7 @@ from django.shortcuts import reverse
 from django import forms
 from django.core.paginator import Paginator
 
-from ..models import Post, Group
+from ..models import Post, Group, Follow
 
 
 class ViewContentTest(TestCase):
@@ -20,6 +20,8 @@ class ViewContentTest(TestCase):
         super().setUpClass()
         """Тестовые данные"""
         cls.user = get_user_model().objects.create_user(username="Leon")
+        cls.user2 = get_user_model().objects.create_user(username="Alex")
+        cls.user3 = get_user_model().objects.create_user(username="Dima")
         settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
         small_gif = (b'\x47\x49\x46\x38\x39\x61\x02\x00'
                      b'\x01\x00\x80\x00\x00\x00\x00\x00'
@@ -47,12 +49,21 @@ class ViewContentTest(TestCase):
             image=uploaded
 
         )
+        cls.follow = Follow.objects.create(
+            user=cls.user,
+            author=cls.user2
+        )
 
     def setUp(self) -> None:
         """Тестовые пользователи"""
         self.guest_client = Client()
         self.authorized_user = Client()
         self.authorized_user.force_login(self.user)
+
+        self.user_not_follower = Client()
+        self.user_follower = Client()
+        self.user_not_follower.force_login(self.user2)
+        self.user_follower.force_login(self.user3)
 
     @classmethod
     def tearDownClass(cls):
@@ -165,3 +176,48 @@ class PaginatorViewsTest(TestCase):
         """Тест количества постов на второй странице"""
         response = self.guest_client.get(reverse("index") + "?page=2")
         self.assertEqual(len(response.context.get('page').object_list), 3)
+
+class FollowUserViewTest(TestCase):
+    FOLLOWER_USER = 'TestUser_01'
+    NOT_FOLLOWER_USER = 'TestUser_02'
+    def setUp(self):
+        # создадим 2х пользователей.
+        self.user_follower = get_user_model().objects.create(
+            username=self.FOLLOWER_USER)
+        self.user_not_follower = get_user_model().objects.create(
+            username=self.NOT_FOLLOWER_USER)
+        # Создадим 2 записи на нашем сайте
+        Post.objects.create(text='Тест',
+                            author=self.user_not_follower
+                            )
+        Post.objects.create(text='Тест',
+                            author=self.user_follower
+                            )
+        # авторизуем подписчика
+        self.auth_client_follower = Client()
+        self.auth_client_follower.force_login(self.user_follower)
+        # авторизуем владельца записи на нашем сайте
+        self.auth_client_author = Client()
+        self.auth_client_author.force_login(self.user_not_follower)
+    def test_authorized_user_follow_to_other_user(self):
+        """Тестирование подписывания на пользователей"""
+        self.auth_client_follower.post(reverse(
+            'profile_follow',
+            kwargs={
+                'username': self.user_not_follower
+            }))
+        self.assertTrue(Follow.objects.filter(user=self.user_follower,
+                                              author=self.user_not_follower),
+                        'Подписка на пользователя не рабоатет'
+                        )
+    def test_authorized_user_unfollow(self):
+        """Тестирование отписывания от пользователей"""
+        self.auth_client_follower.get(reverse(
+            'profile_unfollow',
+            kwargs={
+                'username': self.user_not_follower
+            }))
+        self.assertFalse(Follow.objects.filter(user=self.user_follower,
+                                               author=self.user_not_follower),
+                         'Отписка от пользователя не работает'
+                         )
