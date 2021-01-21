@@ -10,7 +10,7 @@ from django.shortcuts import reverse
 from django import forms
 from django.core.paginator import Paginator
 
-from ..models import Post, Group, Follow
+from ..models import Post, Group, Follow, Comment
 
 
 class ViewContentTest(TestCase):
@@ -21,7 +21,7 @@ class ViewContentTest(TestCase):
         """Тестовые данные"""
         cls.user = get_user_model().objects.create_user(username="Leon")
         cls.user2 = get_user_model().objects.create_user(username="Alex")
-        cls.user3 = get_user_model().objects.create_user(username="Dima")
+
         settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
         small_gif = (b'\x47\x49\x46\x38\x39\x61\x02\x00'
                      b'\x01\x00\x80\x00\x00\x00\x00\x00'
@@ -51,7 +51,7 @@ class ViewContentTest(TestCase):
         )
         cls.follow = Follow.objects.create(
             user=cls.user,
-            author=cls.user2
+            author=cls.user
         )
 
     def setUp(self) -> None:
@@ -59,11 +59,6 @@ class ViewContentTest(TestCase):
         self.guest_client = Client()
         self.authorized_user = Client()
         self.authorized_user.force_login(self.user)
-
-        self.user_not_follower = Client()
-        self.user_follower = Client()
-        self.user_not_follower.force_login(self.user2)
-        self.user_follower.force_login(self.user3)
 
     @classmethod
     def tearDownClass(cls):
@@ -142,6 +137,24 @@ class ViewContentTest(TestCase):
             reverse("group_post", args=[self.group.slug]))
         self.assertContains(response, new_post)
 
+    def test_new_post_follow(self):
+        """Только авторизированный пользователь может комментировать посты."""
+        comments_count = Comment.objects.count()
+        form_data = {'text': 'Текст тестового комментария'}
+        response = self.authorized_user.post(
+            reverse(
+                'add_comment',
+                kwargs={
+                    'username': self.post.author.username,
+                    'post_id': self.post.id,
+                }
+            ),
+            data=form_data,
+            follow=True,
+        )
+        self.assertEqual(Comment.objects.count(), comments_count + 1,
+                         f"Количество комментариев меньше {comments_count + 1}")
+
 
 class PaginatorViewsTest(TestCase):
 
@@ -177,9 +190,11 @@ class PaginatorViewsTest(TestCase):
         response = self.guest_client.get(reverse("index") + "?page=2")
         self.assertEqual(len(response.context.get('page').object_list), 3)
 
+
 class FollowUserViewTest(TestCase):
     FOLLOWER_USER = 'TestUser_01'
     NOT_FOLLOWER_USER = 'TestUser_02'
+
     def setUp(self):
         # создадим 2х пользователей.
         self.user_follower = get_user_model().objects.create(
@@ -199,6 +214,7 @@ class FollowUserViewTest(TestCase):
         # авторизуем владельца записи на нашем сайте
         self.auth_client_author = Client()
         self.auth_client_author.force_login(self.user_not_follower)
+
     def test_authorized_user_follow_to_other_user(self):
         """Тестирование подписывания на пользователей"""
         self.auth_client_follower.post(reverse(
@@ -210,6 +226,7 @@ class FollowUserViewTest(TestCase):
                                               author=self.user_not_follower),
                         'Подписка на пользователя не рабоатет'
                         )
+
     def test_authorized_user_unfollow(self):
         """Тестирование отписывания от пользователей"""
         self.auth_client_follower.get(reverse(

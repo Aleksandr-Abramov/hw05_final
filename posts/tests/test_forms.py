@@ -29,7 +29,6 @@ class PostFormTest(TestCase):
             text="тестовый текст поста",
             group=cls.group
         )
-
         settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
     def setUp(self) -> None:
