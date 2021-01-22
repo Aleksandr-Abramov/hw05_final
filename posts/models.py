@@ -44,9 +44,17 @@ class Post(models.Model):
 
 class Group(models.Model):
     """Модель для Группы"""
-    title = models.CharField(verbose_name="Заголовок сообщества", max_length=200)
-    slug = models.SlugField(verbose_name="Адрес сообщества в интернете", unique=True)
-    description = models.TextField(verbose_name="Описание сообщества")
+    title = models.CharField(
+        verbose_name="Заголовок сообщества",
+        max_length=200
+    )
+    slug = models.SlugField(
+        verbose_name="Адрес сообщества в интернете",
+        unique=True
+    )
+    description = models.TextField(
+        verbose_name="Описание сообщества"
+    )
 
     def __str__(self):
         return self.title

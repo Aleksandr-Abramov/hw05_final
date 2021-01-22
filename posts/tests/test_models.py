@@ -44,8 +44,8 @@ class ModelFieldsTest(TestCase):
         }
         for field, value in field_verbose.items():
             with self.subTest(value=value):
-                self.assertEqual(self.group._meta.get_field(field).verbose_name,
-                                 value)
+                self.assertEqual(
+                    self.group._meta.get_field(field).verbose_name, value)
 
     def test_help_text_post(self):
         """Тест значений полей help_text модели Post"""

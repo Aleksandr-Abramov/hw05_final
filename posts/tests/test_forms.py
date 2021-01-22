@@ -1,4 +1,4 @@
-import os
+"""Тест forms"""
 import shutil
 import tempfile
 from django.conf import settings
@@ -67,7 +67,8 @@ class PostFormTest(TestCase):
             data=form_data,
             follow=True)
 
-        self.assertEqual(response.status_code, 200, "Страница new.html не отвечает")
+        self.assertEqual(response.status_code, 200,
+                         "Страница new.html не отвечает")
         self.assertRedirects(response, reverse("index"))
         self.assertEqual(Post.objects.count(), tasks_count + 1,
                          f"Количество постов меньше {tasks_count + 1}")

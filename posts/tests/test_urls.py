@@ -19,7 +19,8 @@ class StaticURLTests(TestCase):
             reverse("new_post"): "add_or_change_post.html",
             reverse("profile", args=[cls.user]): "profile.html",
             reverse("post", args=[cls.user, 1]): "post.html",
-            reverse("post_edit", args=[cls.user, 1]): "add_or_change_post.html",
+            reverse(
+                "post_edit", args=[cls.user, 1]): "add_or_change_post.html",
             reverse("about:author"): "about/author.html",
             reverse("about:tech"): "about/tech.html"
         }
@@ -73,7 +74,8 @@ class StaticURLTests(TestCase):
 
     def test_not_authorized_user_post_edit_redirect(self):
         """Проверка статус код 302 редирект post_edit"""
-        response = self.guest_client.get(reverse("post_edit", args=[self.user, 1]))
+        response = self.guest_client.get(
+            reverse("post_edit", args=[self.user, 1]))
         self.assertEqual(response.status_code, 302)
 
     def test_page404(self):

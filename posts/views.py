@@ -112,10 +112,16 @@ def post_edit(request, username, post_id):
         }
         return render(request, 'add_or_change_post.html', context)
 
-    form = PostForm(request.POST or None, files=request.FILES or None, instance=post)
+    form = PostForm(request.POST or None,
+                    files=request.FILES or None,
+                    instance=post
+                    )
     if form.is_valid():
         form.save()
-        return redirect("post", username=request.user.username, post_id=post_id)
+        return redirect("post",
+                        username=request.user.username,
+                        post_id=post_id
+                        )
 
 
 @login_required()

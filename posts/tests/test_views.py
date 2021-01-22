@@ -9,7 +9,6 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from django import forms
 
-
 from ..models import Post, Group, Follow, Comment
 
 
@@ -75,7 +74,9 @@ class ViewContentTest(TestCase):
 
     def test_group_post_content(self):
         """Проверка контента group.html"""
-        response = self.guest_client.get(reverse("group_post", args=["test-lev"]))
+        response = self.guest_client.get(
+            reverse("group_post", args=["test-lev"]))
+
         content = self.post
         expected_content = response.context.get("page")[0]
         self.assertEqual(content, expected_content,
@@ -274,7 +275,7 @@ class CommentsViewsTest(TestCase):
         """Только авторизированный пользователь может комментировать пост."""
         comments_count = Comment.objects.count()
         form_data = {'text': 'Текст тестового комментария'}
-        response = self.authorized_user.post(
+        self.authorized_user.post(
             reverse(
                 'add_comment',
                 kwargs={
@@ -286,13 +287,13 @@ class CommentsViewsTest(TestCase):
             follow=True,
         )
         self.assertEqual(Comment.objects.count(), comments_count + 1,
-                         f"Количество комментариев меньше {comments_count + 1}")
+                         f"Количество комментариев меньше{comments_count + 1}")
 
     def test_comment_guest_client(self):
         """Неавторизированный пользователь пробует комментировать пост."""
         comments_count = Comment.objects.count()
         form_data = {'text': 'Текст тестового комментария'}
-        response = self.guest_client.post(
+        self.guest_client.post(
             reverse(
                 'add_comment',
                 kwargs={
@@ -305,4 +306,4 @@ class CommentsViewsTest(TestCase):
         )
 
         self.assertEqual(Comment.objects.count(), comments_count,
-                         f"Количество комментариев больше 0")
+                         "Количество комментариев больше 0")
