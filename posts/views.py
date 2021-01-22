@@ -28,7 +28,7 @@ def index(request):
 def group_posts(request, slug):
     """Страница записей сообщества group_post"""
     group = get_object_or_404(Group, slug=slug)
-    posts = Post.objects.filter(group=group).order_by("-pub_date")
+    posts = Post.objects.filter(group=group)
     paginator = Paginator(posts, 5)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
@@ -120,7 +120,7 @@ def post_edit(request, username, post_id):
 
 @login_required()
 def add_comment(request, username, post_id):
-    """Добовление комментарив"""
+    """Добавление комментарив)))"""
     post = Post.objects.get(pk=post_id)
     form = CommentForm(request.POST or None)
     if request.GET or not form.is_valid():

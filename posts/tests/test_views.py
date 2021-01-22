@@ -137,24 +137,6 @@ class ViewContentTest(TestCase):
             reverse("group_post", args=[self.group.slug]))
         self.assertContains(response, new_post)
 
-    def test_new_post_follow(self):
-        """Только авторизированный пользователь может комментировать посты."""
-        comments_count = Comment.objects.count()
-        form_data = {'text': 'Текст тестового комментария'}
-        response = self.authorized_user.post(
-            reverse(
-                'add_comment',
-                kwargs={
-                    'username': self.post.author.username,
-                    'post_id': self.post.id,
-                }
-            ),
-            data=form_data,
-            follow=True,
-        )
-        self.assertEqual(Comment.objects.count(), comments_count + 1,
-                         f"Количество комментариев меньше {comments_count + 1}")
-
 
 class PaginatorViewsTest(TestCase):
 
@@ -238,3 +220,89 @@ class FollowUserViewTest(TestCase):
                                                author=self.user_not_follower),
                          'Отписка от пользователя не работает'
                          )
+
+
+class CommentsViewsTest(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        """Тестовые данные"""
+        cls.user = get_user_model().objects.create_user(username="Leon")
+
+        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
+        small_gif = (b'\x47\x49\x46\x38\x39\x61\x02\x00'
+                     b'\x01\x00\x80\x00\x00\x00\x00\x00'
+                     b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+                     b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+                     b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+                     b'\x0A\x00\x3B'
+                     )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
+
+        cls.group = Group.objects.create(
+            title="Заголовок группы",
+            slug="test-lev",
+            description="Тестовый текст группы"
+        )
+
+        cls.post = Post.objects.create(
+            author=cls.user,
+            text="тестовый текст поста",
+            group=cls.group,
+            image=uploaded
+
+        )
+
+    def setUp(self) -> None:
+        """Тестовые пользователи"""
+
+        self.guest_client = Client()
+        self.authorized_user = Client()
+        self.authorized_user.force_login(self.user)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
+
+    def test_comment_authorized_user(self):
+        """Только авторизированный пользователь может комментировать пост."""
+        comments_count = Comment.objects.count()
+        form_data = {'text': 'Текст тестового комментария'}
+        response = self.authorized_user.post(
+            reverse(
+                'add_comment',
+                kwargs={
+                    'username': self.post.author.username,
+                    'post_id': self.post.id,
+                }
+            ),
+            data=form_data,
+            follow=True,
+        )
+        self.assertEqual(Comment.objects.count(), comments_count + 1,
+                         f"Количество комментариев меньше {comments_count + 1}")
+
+    def test_comment_guest_client(self):
+        """Неавторизированный пользователь пробует комментировать пост."""
+        comments_count = Comment.objects.count()
+        form_data = {'text': 'Текст тестового комментария'}
+        response = self.guest_client.post(
+            reverse(
+                'add_comment',
+                kwargs={
+                    'username': self.post.author.username,
+                    'post_id': self.post.id,
+                }
+            ),
+            data=form_data,
+            follow=True,
+        )
+
+        self.assertEqual(Comment.objects.count(), comments_count,
+                         f"Количество комментариев больше 0")

@@ -68,7 +68,7 @@ class PostFormTest(TestCase):
             follow=True)
 
         self.assertEqual(response.status_code, 200, "Страница new.html не отвечает")
-        self.assertRedirects(response, "/")
+        self.assertRedirects(response, reverse("index"))
         self.assertEqual(Post.objects.count(), tasks_count + 1,
                          f"Количество постов меньше {tasks_count + 1}")
 
