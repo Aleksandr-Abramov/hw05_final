@@ -7,16 +7,7 @@
     <div class="row">
         <div class="col-md-3 mb-3 mt-1">
             <div class="card">
-                <div class="card-body">
-                    <div class="h2">
-                        <!-- Имя автора -->
-                        {{ post.author.get_full_name }}
-                    </div>
-                    <div class="h3 text-muted">
-                        <!-- username автора -->
-                        @{{ post.author.username }}
-                    </div>
-                </div>
+                {% include "includes/card-body.html" %}
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
                         <div class="h6 text-muted">
@@ -30,6 +21,7 @@
                             Записей: {{ post.author.posts.count }}
                         </div>
                     </li>
+                    {% include "includes/following.html" %}
                 </ul>
             </div>
         </div>

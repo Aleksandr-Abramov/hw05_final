@@ -81,15 +81,21 @@ def profile(request, username):
 
 def post_view(request, username, post_id):
     """Просмотр записи Post"""
+    following = False
     post = get_object_or_404(Post, id=post_id, author__username=username)
     author_posts = post.author
+    if request.user.is_authenticated:
+        if Follow.objects.filter(user=request.user,
+                                 author=author_posts).exists():
+            following = True
     comments = post.comments.all()
     form = CommentForm()
     context = {
         "author": author_posts,
         "post": post,
         "form": form,
-        "comments": comments
+        "comments": comments,
+        "following": following,
     }
     return render(request, "post.html", context)
 
