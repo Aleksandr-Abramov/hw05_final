@@ -127,7 +127,7 @@ def post_edit(request, username, post_id):
         return redirect("post",
                         username=request.user.username,
                         post_id=post_id
-                        )
+                    )
 
 
 @login_required()

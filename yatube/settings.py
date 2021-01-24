@@ -23,6 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = '#%8t0y0d2xb&uk*67=nkhxgt$t%(7(+&uycwbvd@%2rf$%(#^d'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# для тестирования сайта
 DEBUG = True
 
 ALLOWED_HOSTS = [
@@ -31,20 +32,31 @@ ALLOWED_HOSTS = [
     "[::1]",
     "testserver",
 ]
+# для публикации в интернет ngrok
+
+# ALLOWED_HOSTS = [
+#         "*",
+#     ]
+# django-debug-tollbar
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
 # Application definition
 
 INSTALLED_APPS = [
-    'posts',
-    'users',
-    'about',
-    'sorl.thumbnail',
-
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'debug_toolbar',
+    'posts',
+    'users',
+    'about',
+    'sorl.thumbnail',
 ]
 
 MIDDLEWARE = [
@@ -55,6 +67,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = 'yatube.urls'
